@@ -1,0 +1,53 @@
+set title "LRA Benchmark Steady State"
+set mode eigenvalue
+set showmatrix
+
+% --- Fuel assembly types ---
+
+assem 1
+d 1.255 0.211
+sig_a 0.008252 0.1003
+nu_sig_f 0.004602 0.1091
+sig_s 0 0 0.02533 0
+chi 1 0
+end
+
+assem 2
+d 1.268 0.1902
+sig_a 0.007181 0.07047
+nu_sig_f 0.004609 0.08675
+sig_s 0 0 0.02767 0
+chi 1 0
+end
+
+assem 3
+d 1.259 0.2091
+sig_a 0.008002 0.08344
+nu_sig_f 0.004663 0.1021
+sig_s 0 0 0.02617 0
+chi 1 0
+end
+
+assem 4
+d 1.259 0.2091
+sig_a 0.008002 0.073324
+nu_sig_f 0.004663 0.1021
+sig_s 0 0 0.02617 0
+chi 1 0
+end
+
+assem 5
+d 1.257 0.1592
+sig_a 0.0006034 0.01911
+nu_sig_f 0 0
+sig_s 0 0 0.04754 0
+chi 1 0
+end
+
+set axial_buckling 0 
+set assembly_size 15.0
+
+corelayout 3 3
+v v v
+v 2 v
+v v v

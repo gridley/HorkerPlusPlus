@@ -1,0 +1,5 @@
+*.o
+horker++
+__pycache__
+*.vtu
+*.vtk
