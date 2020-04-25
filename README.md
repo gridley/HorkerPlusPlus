@@ -1,6 +1,6 @@
-#HORKER++
-![emblem](pics/horker.png)
-###(High Order Reactor Kinetics and Evaluation of Reactivity, in C++)
+# HORKER++
+![emblem](pics/horker.png | width=300)
+### (High Order Reactor Kinetics and Evaluation of Reactivity, in C++)
 
 This is a simple finite element program only requiring you to have [Eigen](eigen.tuxfamily.org) installed.
 Arbitrary order Lagrange element meshes are automatically generated based on simple input files which
@@ -10,4 +10,11 @@ no support for thermalhydraulic coupling. Paraview output (VTKU) is provided for
 
 This was written for an MIT 22.213 final project.
 
-Licensed under GPL 3.
+### Installation
+Pull, have Eigen installed in a place like below, run `make`.
+```
+  export CPLUS_INCLUDE_PATH=$CPLUS_INCLUDE_PATH:/usr/include/eigen3
+```
+
+### License
+GPL 3
