@@ -17,6 +17,9 @@ class ReferenceElement<%i>
 {
 public:
   static constexpr unsigned Npts = %i;
+  static constexpr unsigned NEdgeNodes = %i;
+  static constexpr unsigned NInternalNodes = %i;
+  static constexpr unsigned Degree = %i;
   static constexpr std::array<double, Npts> node_xpoints = {%s};
   static constexpr std::array<double, Npts> node_ypoints = {%s};
   static inline std::array<double, %i> evaluate_basis(double x, double y) {
@@ -97,38 +100,38 @@ xx, yy = np.meshgrid(fine_x, fine_x)
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
 
-dirname = 'order_%i'%d
-if os.path.exists(dirname):
-    os.remove(dirname)
-os.mkdir(dirname)
+# dirname = 'order_%i'%d
+# if os.path.exists(dirname):
+#     os.remove(dirname)
+# os.mkdir(dirname)
 
 # Plot each basis function
-for fcn in range(npts):
-    plt.axis('off')
-    k=0
-    print(fcn)
-    for j in range(n_fine):
-        for i in range(n_fine):
-            fine_points[k,0] = fine_x[i]
-            fine_points[k,1] = fine_x[j]
-            fine_points[k,2] = np.dot(evaluate_basis(fine_x[i], fine_x[j]), result[:,fcn])
-            k+=1
-
-    # plt.pcolormesh(fine_x, fine_x, fine_points[:,2].reshape(n_fine,n_fine))
-    arr = fine_points[:,2].reshape(n_fine,n_fine)
-    ax.plot_surface(xx, yy, arr, cmap=cm.viridis)
-    # ax.plot(points[:,0], points[:,1], 'bs')
-    # plt.show()
-    fig.savefig(os.path.join(dirname, 'basis_%i.png'%fcn))
-    ax.clear()
+# for fcn in range(npts):
+#     plt.axis('off')
+#     k=0
+#     print(fcn)
+#     for j in range(n_fine):
+#         for i in range(n_fine):
+#             fine_points[k,0] = fine_x[i]
+#             fine_points[k,1] = fine_x[j]
+#             fine_points[k,2] = np.dot(evaluate_basis(fine_x[i], fine_x[j]), result[:,fcn])
+#             k+=1
+# 
+#     # plt.pcolormesh(fine_x, fine_x, fine_points[:,2].reshape(n_fine,n_fine))
+#     arr = fine_points[:,2].reshape(n_fine,n_fine)
+#     ax.plot_surface(xx, yy, arr, cmap=cm.viridis)
+#     # ax.plot(points[:,0], points[:,1], 'bs')
+#     # plt.show()
+#     fig.savefig(os.path.join(dirname, 'basis_%i.png'%fcn))
+#     ax.clear()
 
 # # Save the basis function coefficients
-np.savetxt(os.path.join(dirname, 'basis_coeffs'), result.T)
-np.savetxt(os.path.join(dirname, 'node_locations'), points)
+# np.savetxt(os.path.join(dirname, 'basis_coeffs'), result.T)
+# np.savetxt(os.path.join(dirname, 'node_locations'), points)
 
 
 ######
-quit()
+# quit()
 #######
 
 # Generate C++ code for reference element basis evaluation
@@ -183,5 +186,5 @@ dery = '\n'.join(der_y_eval)
 
 xpts = ','.join([str(s) for s in points[:,0]])
 ypts = ','.join([str(s) for s in points[:,1]])
-this_spec = specialization%(d, npts, xpts, ypts, npts, basis, npts, derx, npts, dery)
+this_spec = specialization%(d, npts, d-1, (d-1)**2, d, xpts, ypts, npts, basis, npts, derx, npts, dery)
 print(this_spec)

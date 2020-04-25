@@ -32,7 +32,7 @@
 #include <string>
 #include <iostream>
 
-constexpr unsigned Degree = 1;
+constexpr unsigned Degree = 5;
 constexpr unsigned Ngroups = 2;
 
 int main(int argc, char* argv[]) {
