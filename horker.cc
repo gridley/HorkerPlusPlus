@@ -28,12 +28,14 @@
 #include "openmc/position.h"
 #include "reference_elements.h"
 #include "steadysolver.h"
+#include "transientsolver.h"
 #include "quadrature.h"
 #include <string>
 #include <iostream>
 
-constexpr unsigned Degree = 5;
+constexpr unsigned Degree = 4;
 constexpr unsigned Ngroups = 2;
+typedef Sommariva16 Quad;
 
 int main(int argc, char* argv[]) {
   if (argc != 2) {
@@ -50,8 +52,12 @@ int main(int argc, char* argv[]) {
   // Initialize core geometry
   ReactorGeometry<ReferenceElement<Degree>> geom(input);
 
-  // Create solver
-  SteadySolver<ReferenceElement<Degree>, RabinowitzRichter6, Ngroups> solver(geom);
+  // Create steady-state solver
+  // This is always done for both steady and transient solves right
+  // now. In the future, I could have output files for the steady
+  // solve for transient solves to read in, but that's a bit much
+  // effort for now.
+  SteadySolver<ReferenceElement<Degree>, Quad, Ngroups> solver(geom);
 
   if (input.showmatrix) {
     std::cout << "LHS" << std::endl;
@@ -62,11 +68,30 @@ int main(int argc, char* argv[]) {
   }
 
   solver.inversePowerIteration();
-  auto group1 = solver.getGroupFlux(0);
-  auto group2 = solver.getGroupFlux(1);
-  std::string name = "group1";
-  std::string name2 = "group2";
-  geom.printDataToVTK("test.vtu", {&group1, &group2}, {&name, &name2});
 
-  // geom.printGeometryToVTK("hope.vtu");
+  // Prepare output data
+  std::vector<decltype(solver.getGroupFlux(0))> group_vectors(Ngroups);
+  std::vector<std::string> group_names;
+  for (int g=0; g<Ngroups; ++g) {
+    group_vectors[g] = solver.getGroupFlux(g);
+    group_names.push_back("group" + std::to_string(g));
+  }
+  std::vector<decltype(group_vectors)::value_type*> group_pointers(group_vectors.size());
+  std::vector<std::string*> group_name_ptr(group_vectors.size());
+  for (int g=0; g<Ngroups; ++g) {
+    group_pointers[g] = &group_vectors[g];
+    group_name_ptr[g] = &group_names[g];
+  }
+
+  // Output steady-state results
+  geom.printDataToVTK("steady_result.vtu", group_pointers, group_name_ptr);
+
+  // Now prepare to run a transient, if that mode was set in input
+  if (input.runmode == ParsedInput::RunMode::transient) {
+    std::cout << "running in transient mode..." << std::endl;
+    double dt = 1e-3;
+    double tfinal = 1.0;
+    TransientSolver<ReferenceElement<Degree>, Quad, Ngroups> trans_solver(geom, solver, dt, tfinal, "transient_results");
+    trans_solver.run();
+  }
 }

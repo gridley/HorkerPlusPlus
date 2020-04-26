@@ -1,6 +1,8 @@
+#pragma once
 #include "geometry.h"
 #include <Eigen/Sparse>
 #include <Eigen/Dense>
+#include <cmath>
 
 using SpMat = Eigen::SparseMatrix<double>;
 using Trip = Eigen::Triplet<double>;
@@ -29,10 +31,11 @@ class SteadySolver
   // It's useful to pre-compute an LU of the LHS matrix.
   Eigen::SparseLU<SpMat> lhs_lu;
 
-  Eigen::VectorXd soln;
-  Eigen::VectorXd fiss_source;
 
 public:
+
+  Eigen::VectorXd soln;
+  Eigen::VectorXd fiss_source;
 
   // constructor takes a geometry specification object
   SteadySolver(ReactorGeometry<RefElement>& geom_) : geom(geom_),
@@ -45,8 +48,8 @@ public:
     // Construct sparse matrices
     std::vector<Trip> lhs_matrix_entries;
     std::vector<Trip> rhs_matrix_entries;
-    lhs_matrix_entries.reserve(10*geom.points.size());
-    rhs_matrix_entries.reserve(2*geom.points.size());
+    lhs_matrix_entries.reserve(Ng*geom.points.size());
+    rhs_matrix_entries.reserve(Ng*geom.points.size());
 
     // Loop over elements, compute local mass/stiffness matrices,
     // and put them back to the lhs and rhs entries using the
@@ -55,6 +58,10 @@ public:
       // Local and RHS matrix to calculate
       LocalMat local_lhs = LocalMat::Zero();
       LocalMat local_rhs = LocalMat::Zero();
+
+      // TODO: for general deformed quadrilaterals, this approach doesn't work,
+      // and the true jacobian must be used to scale the derivative terms
+      double dx2 = geom.dx_nom * geom.dx_nom;
 
       // Loop over quadrature points:
       for (int w=0; w<Quadrature::points.size(); ++w) {
@@ -65,13 +72,8 @@ public:
         std::array<double, RefElement::Npts> der_x = RefElement::evaluate_deriv_x(x, y);
         std::array<double, RefElement::Npts> der_y = RefElement::evaluate_deriv_y(x, y);
 
-        // TODO: for general deformed quadrilaterals, this approach doesn't work,
-        // and the true jacobian must be used to scale the derivative terms
-        double dx2 = geom.dx_nom * geom.dx_nom;
-
         for (int test=0; test<RefElement::Npts; ++test) {
           for (int trial=0; trial<RefElement::Npts; ++trial) {
-            // For true n-group, this would include a loop over both gprime and g
             for (int group=0; group<Ng; ++group) {
               double entry = q.xs.diffcoeffs[group] * (der_x[test]*der_x[trial]+
                                                        der_y[test]*der_y[trial])/dx2;
@@ -159,17 +161,25 @@ public:
 
     // Do a couple power iterations
     double k=1.0;
-    int max_outer = 100;
+    int max_outer = 10000;
+    Eigen::VectorXd residual(soln.size());
     for (int outer=0; outer<max_outer; ++outer) {
       std::cout << k << std::endl;
-
       soln /= soln.norm();
       fiss_source = rhs_matrix * soln / k;
       soln = lhs_lu.solve(fiss_source);
       double norm2 = soln.norm();
       k *= norm2;
-    }
 
+      // Every ten iterations, check the eigenproblem residual.
+      if (outer%10==0 and outer>0) {
+        residual = (lhs_matrix * soln - rhs_matrix * soln/k);
+        double resid_norm = residual.norm();
+        // std::cout << "eigenproblem residual norm: " << resid_norm << std::endl;
+        if (resid_norm < geom.eig_tol) break;
+      }
+    }
+    geom.k = k;
   }
 
   Eigen::VectorXd getGroupFlux(int g) {

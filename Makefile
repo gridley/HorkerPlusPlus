@@ -1,8 +1,10 @@
 OBJECTS = input_parsing.o
-FLAGS = -O0 -g -std=c++17
+DEBUG = -O0 -g
+OPT = -O4 -ffast-math
+FLAGS = $(OPT) -std=c++17
 
 %.o: %.cc %.h
 	g++ -c $(FLAGS) $< -o $@
 
-"horker++": $(OBJECTS)
-	g++ $(OBJECTS) $(FLAGS) horker.cc -o horker++ -lopenmc
+"horker++": $(OBJECTS) input_parsing.cc
+	g++ $(OBJECTS) $(FLAGS) horker.cc -o horker++ -lopenmc -lstdc++fs

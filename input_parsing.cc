@@ -49,6 +49,9 @@ ParsedInput::ParsedInput(std::string filename) {
         assembly_size = std::stod(thisword);
       } else if (thisword == "showmatrix") {
         showmatrix = true;
+      } else if (thisword == "eig_tol") {
+        if (not (infile >> thisword)) throw ParseError();
+        eig_tol = std::stod(thisword);
       } else {
         throw InvalidKeyword(thisword);
       }
@@ -61,7 +64,9 @@ ParsedInput::ParsedInput(std::string filename) {
       this_assem.id = thisword;
 
       std::array<bool, 5> found_cross_sections = {false};
-      while (not all(found_cross_sections)) {
+      std::array<bool, 4> transient_data = {false};
+
+      while (not all(found_cross_sections) or not (all(transient_data) or runmode==RunMode::eigenvalue)) {
         if (not (infile >> thisword)) throw ParseError();
         std::getline(infile, nextword);
         std::stringstream substring(nextword);
@@ -81,12 +86,23 @@ ParsedInput::ParsedInput(std::string filename) {
         } else if (thisword == "chi") {
           while(substring >> thisword) this_assem.chi.push_back(std::stod(thisword));
           found_cross_sections[4] = true;
-        } else {
-          throw InvalidKeyword(thisword);
-        }
+        } else if (thisword == "lambdas") {
+          while(substring >> thisword) this_assem.lambdas.push_back(std::stod(thisword));
+          transient_data[0] = true;
+        } else if (thisword == "betas") {
+          while(substring >> thisword) this_assem.betas.push_back(std::stod(thisword));
+          transient_data[1] = true;
+        } else if (thisword == "chi_d") {
+          while(substring >> thisword) this_assem.chi_d.push_back(std::stod(thisword));
+          transient_data[2] = true;
+        } else if (thisword == "velocities") {
+          while(substring >> thisword) this_assem.velocities.push_back(std::stod(thisword));
+          transient_data[3] = true;
+        } else throw InvalidKeyword(thisword);
       }
 
       this_assem.calculate_removal_xs();
+      this_assem.setDelayedGroups();
       assemblies.push_back(this_assem);
 
     } else if (thisword == "corelayout") {
@@ -172,4 +188,19 @@ ParsedInput::ParsedInput(std::string filename) {
 
   // Now the number of unique points in the geometry can be calculated.
   npoints = ncol * core_geom[0].size();
+}
+
+bool ParsedInput::hasTransientData() {
+  bool result = true;
+  for (auto& assem: assemblies) {
+    result = result || assem.n_delayed_groups;
+    if (assem.n_delayed_groups == 0) return false;
+  }
+  return result;
+}
+
+unsigned ParsedInput::getPrecursorCount() {
+  if (hasTransientData()) {
+    return assemblies[0].n_delayed_groups;
+  } else return 0;
 }

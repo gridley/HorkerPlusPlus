@@ -299,6 +299,9 @@ public:
   std::vector<openmc::Position> points;
   std::vector<Quadrilateral<RefElement>> quads;
   double dx_nom; // nominal assembly size
+  double k; // eigenvalue for this geometry, saved for transients
+  double eig_tol;
+  unsigned n_precursors;
 
   // This is useful for debugging geometry. Just prints
   // each assembly geometry index, and what its neighbors are.
@@ -314,9 +317,18 @@ public:
 
   using Bdry = ElementBoundary<RefElement>;
 
-  ReactorGeometry(ParsedInput& input) : dx_nom(input.assembly_size)
+  ReactorGeometry(ParsedInput& input) : dx_nom(input.assembly_size),
+  eig_tol(input.eig_tol)
   {
     points.reserve(RefElement::Npts * input.npoints);
+
+    // Read in precursor count, and double-check that all materials are defining the
+    // same number of precursors to be used.
+    if (input.hasTransientData()) {
+      n_precursors = input.getPrecursorCount();
+    } else {
+      n_precursors = 0;
+    }
 
     // The geometry set routine goes like this:
     // 1) Create all the quads, assign materials, assign neighbor
@@ -601,4 +613,5 @@ public:
     }
     printAfterPointData(f);
   }
+  unsigned npoints() { return points.size(); }
 };

@@ -35,6 +35,9 @@ protected:
 
 struct ParsedAssembly
 {
+  unsigned n_delayed_groups;
+  double beta;
+
   std::string id;
   std::vector<double> diffcoeffs;
   std::vector<double> sigma_a;
@@ -43,6 +46,11 @@ struct ParsedAssembly
   std::vector<double> chi;
 
   std::vector<double> sigma_r; // removal cross section, calculated after-the-fact
+
+  std::vector<double> lambdas;
+  std::vector<double> betas;
+  std::vector<double> chi_d;
+  std::vector<double> velocities;
 
   // Converts the absorption XS to a removal XS
   void calculate_removal_xs() {
@@ -56,6 +64,27 @@ struct ParsedAssembly
     }
     for (int g=0; g<ng; ++g)
       sigma_r[g] = tot_scattering[g] + sigma_a[g];
+  }
+
+  unsigned checkTransientData() {
+    // Checks that all transient data has been provided, if one piece was given
+    // Returns the number of delayed neutron groups provided if all requisite data's there.
+    unsigned size = lambdas.size();
+    if (size == 0) return 0;
+    if (betas.size() != size) return 0;
+    if (chi_d.size() != diffcoeffs.size()) return 0;
+    if (velocities.size() != diffcoeffs.size()) return 0;
+
+    // sum delayed neutron fractions
+    beta = 0.0;
+    for (auto b: betas) beta += b;
+
+    return size;
+  }
+
+  void setDelayedGroups() {
+    // Sets the delayed group count, only if all required data was provided
+    n_delayed_groups = checkTransientData();
   }
 };
 
@@ -76,9 +105,19 @@ public:
   double axial_buckling;
   double assembly_size;
 
+  double eig_tol {1e-6}; // eigenproblem residual L2 norm to stop at
+
   bool showmatrix {false};
 
   unsigned npoints;
 
   ParsedAssembly& lookupMaterial(std::string& id);
+
+  // This checks if transient data is present for each assembly, and
+  // also checks if the same number of delayed neutron group data for
+  // each assembly is present. If any of those conditions are not met,
+  // this returns false.
+  bool hasTransientData();
+
+  unsigned getPrecursorCount();
 };

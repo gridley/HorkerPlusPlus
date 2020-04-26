@@ -7,13 +7,14 @@ import numpy as np
 frmt = '''
 struct %s : Quadrature<%i>
 {
-  std::array<openmc::Position, Npts> points = {%s};
-  std::array<double, Npts> weights = {%s};
+  static constexpr std::array<openmc::Position, Npts> points = {%s};
+  static constexpr std::array<double, Npts> weights = {%s};
 };
 '''
 
 # This is a particularly nice quadrature: order 15, and not an unreasonable amount of points.
-rule = qp.quadrilateral.rabinowitz_richter_6()
+# rule = qp.quadrilateral.rabinowitz_richter_6()
+rule = qp.quadrilateral.sommariva_16()
 these_points = rule.points
 these_weights = rule.weights
 these_points += np.array([1.0, 1.0]) # shift so origin is at bottom left  corner
