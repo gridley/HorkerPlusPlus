@@ -1,6 +1,6 @@
 OBJECTS = input_parsing.o
 DEBUG = -O0 -g
-OPT = -O4 -ffast-math
+OPT = -O4 -ffast-math -fopenmp
 FLAGS = $(OPT) -std=c++17
 
 %.o: %.cc %.h

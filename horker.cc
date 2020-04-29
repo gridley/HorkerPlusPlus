@@ -89,9 +89,8 @@ int main(int argc, char* argv[]) {
   // Now prepare to run a transient, if that mode was set in input
   if (input.runmode == ParsedInput::RunMode::transient) {
     std::cout << "running in transient mode..." << std::endl;
-    double dt = 1e-3;
-    double tfinal = 1.0;
-    TransientSolver<ReferenceElement<Degree>, Quad, Ngroups> trans_solver(geom, solver, dt, tfinal, "transient_results");
+    TransientSolver<ReferenceElement<Degree>, Quad, Ngroups> trans_solver(geom, solver, input.dt,
+        input.tfinal, "transient_results", input.perturbations, input.linsolve_tol);
     trans_solver.run();
   }
 }

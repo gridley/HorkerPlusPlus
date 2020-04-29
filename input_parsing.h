@@ -5,6 +5,7 @@
 #include <fstream>
 #include <string>
 #include <vector>
+#include <iostream>
 
 template <typename C>
 bool all(C& array) {
@@ -45,25 +46,27 @@ struct ParsedAssembly
   std::vector<double> sig_s;
   std::vector<double> chi;
 
-  std::vector<double> sigma_r; // removal cross section, calculated after-the-fact
+  std::vector<double> tot_scattering; // total scattering cross section, calculated after-the-fact
 
   std::vector<double> lambdas;
   std::vector<double> betas;
   std::vector<double> chi_d;
   std::vector<double> velocities;
+  std::vector<double> gam; // doppler feedback coefficients
 
-  // Converts the absorption XS to a removal XS
-  void calculate_removal_xs() {
+  // sums columns of scattering matrix
+  void calculate_tot_scattering() {
     int ng = sigma_a.size();
-    sigma_r.resize(ng);
-    std::vector<double> tot_scattering(ng, 0.0);
+    tot_scattering.resize(ng);
+
+    for (int g=0; g<ng; ++g)
+      tot_scattering[g] = 0;
+
     for (int row=0; row<ng; ++row) {
       for (int col=0; col<ng; ++col) {
         tot_scattering[col] += sig_s[row*ng+col];
       }
     }
-    for (int g=0; g<ng; ++g)
-      sigma_r[g] = tot_scattering[g] + sigma_a[g];
   }
 
   unsigned checkTransientData() {
@@ -74,6 +77,7 @@ struct ParsedAssembly
     if (betas.size() != size) return 0;
     if (chi_d.size() != diffcoeffs.size()) return 0;
     if (velocities.size() != diffcoeffs.size()) return 0;
+    if (gam.size() != diffcoeffs.size()) return 0;
 
     // sum delayed neutron fractions
     beta = 0.0;
@@ -88,6 +92,51 @@ struct ParsedAssembly
   }
 };
 
+struct MaterialPerturbationTable {
+  std::string mat_id;
+  ParsedAssembly* mat_ptr {nullptr}; // this gets set after all materials are read
+  std::vector<double> times;
+  std::vector<double> values;
+
+  enum class XSType {
+    DiffCoeff,
+    SigA,
+    NuSigF
+  } xstype;
+
+  int group;
+  double orig_xs;
+
+  // Save the original cross section value
+  void setOriginal() {
+    if (mat_ptr) {
+      if (xstype == XSType::DiffCoeff) orig_xs = mat_ptr->diffcoeffs[group];
+      else if (xstype == XSType::SigA) orig_xs = mat_ptr->sigma_a[group];
+      else if (xstype == XSType::NuSigF) orig_xs = mat_ptr->nu_sig_f[group];
+      else std::cerr << "WTF in pert table" << std::endl;
+    } else
+      std::cerr << "must set material pointer first" << std::endl;
+  }
+
+  // Sets the perturbed cross section at time t
+  void setPert(double t) {
+    // Lookup multiplication factor. Linear search cuz the table is usually very small
+    double fac;
+    int ti;
+    for (ti=0; ti<times.size(); ++ti)
+      if (times[ti] > t) { ti--; break; }
+    if (ti == times.size()) fac = values[ti-1];
+    else if (ti == -1) fac = values[0];
+    else fac = (values[ti+1]-values[ti])/(times[ti+1]-times[ti])*(t-times[ti]) + values[ti];
+
+    if (xstype == XSType::DiffCoeff) mat_ptr->diffcoeffs[group] = orig_xs * fac;
+    else if (xstype == XSType::SigA) mat_ptr->sigma_a[group] = orig_xs * fac;
+    else if (xstype == XSType::NuSigF) mat_ptr->nu_sig_f[group] = orig_xs * fac;
+    else std::cerr << "WTF set pert" << std::endl;
+  }
+
+};
+
 class ParsedInput
 {
 public:
@@ -97,6 +146,8 @@ public:
     eigenvalue,
     transient } runmode;
 
+  int refine {1}; // mesh refinement level
+
   std::string title;
 
   std::vector<ParsedAssembly> assemblies;
@@ -105,7 +156,14 @@ public:
   double axial_buckling;
   double assembly_size;
 
+  double dt {1e-3};
+  double tfinal {0.1};
+
   double eig_tol {1e-6}; // eigenproblem residual L2 norm to stop at
+  double linsolve_tol {0}; // zero means use Eigen's default epsilon
+  double P0 {1}; // initial core power in transient calculations
+  double rhocp {1}; // initial core power in transient calculations
+  double T0 {273}; // initial core temperature in transient calculations
 
   bool showmatrix {false};
 
@@ -120,4 +178,6 @@ public:
   bool hasTransientData();
 
   unsigned getPrecursorCount();
+
+  std::vector<MaterialPerturbationTable> perturbations;
 };

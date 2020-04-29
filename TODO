@@ -1,2 +1,8 @@
+Try mass matrix lumping for precursor fields. Could remove the oscillations
+
 Make this work based on C++20, and add a concept for the Quadrature
 and a concept for the ReferenceElement. Man, that would be slick.
+
+Put GIF of LRA transient on README page
+
+Improve description of code on README

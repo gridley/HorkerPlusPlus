@@ -61,7 +61,7 @@ public:
 
       // TODO: for general deformed quadrilaterals, this approach doesn't work,
       // and the true jacobian must be used to scale the derivative terms
-      double dx2 = geom.dx_nom * geom.dx_nom;
+      double dx2 = geom.dx* geom.dx;
 
       // Loop over quadrature points:
       for (int w=0; w<Quadrature::points.size(); ++w) {
@@ -78,7 +78,7 @@ public:
               double entry = q.xs.diffcoeffs[group] * (der_x[test]*der_x[trial]+
                                                        der_y[test]*der_y[trial])/dx2;
               double mass = basis[test] * basis[trial];
-              entry += q.xs.sigma_r[group] * mass;
+              entry += (q.xs.tot_scattering[group]+q.xs.sigma_a[group]) * mass;
               local_lhs(Ng*test+group, Ng*trial+group) += Quadrature::weights[w] * entry;
 
               // Now loop over in-scattering to this group:

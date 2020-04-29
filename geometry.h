@@ -296,9 +296,10 @@ class ReactorGeometry
 {
 
 public:
+  ParsedInput& input_;
   std::vector<openmc::Position> points;
   std::vector<Quadrilateral<RefElement>> quads;
-  double dx_nom; // nominal assembly size
+  double dx; // nominal assembly size
   double k; // eigenvalue for this geometry, saved for transients
   double eig_tol;
   unsigned n_precursors;
@@ -317,7 +318,7 @@ public:
 
   using Bdry = ElementBoundary<RefElement>;
 
-  ReactorGeometry(ParsedInput& input) : dx_nom(input.assembly_size),
+  ReactorGeometry(ParsedInput& input) : input_(input), dx(input.assembly_size/input.refine),
   eig_tol(input.eig_tol)
   {
     points.reserve(RefElement::Npts * input.npoints);
@@ -450,7 +451,6 @@ public:
     }
 
     // Now all of the points will be inserted.
-    double dx = input.assembly_size;
     for (auto& q:quads) {
 
       // corners
