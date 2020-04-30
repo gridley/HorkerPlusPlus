@@ -45,6 +45,8 @@ ParsedInput::ParsedInput(std::string filename) {
       } else if (thisword == "linsolve_tol") {
         if (not (infile >> thisword)) throw ParseError();
         linsolve_tol = std::stod(thisword);
+      } else if (thisword == "shutup") {
+        quiet = true;
       } else if (thisword == "mode") {
         if (not (infile >> thisword)) throw ParseError();
         if (thisword == "eigenvalue") {

@@ -148,7 +148,8 @@ public:
 
   void inversePowerIteration() {
     // Note, Eigen-lib sadly has no routines for doing eigenproblems with sparse matrices
-    std::cout << "Computing LHS LU..." << std::endl;
+    if (not geom.input_.quiet)
+      std::cout << "Computing LHS LU..." << std::endl;
     lhs_lu.analyzePattern(lhs_matrix);
     soln = Eigen::MatrixXd::Constant(matdim, 1, 1.0);
 
@@ -164,7 +165,8 @@ public:
     int max_outer = 10000;
     Eigen::VectorXd residual(soln.size());
     for (int outer=0; outer<max_outer; ++outer) {
-      std::cout << k << std::endl;
+      if (not geom.input_.quiet)
+        std::cout << k << std::endl;
       soln /= soln.norm();
       fiss_source = rhs_matrix * soln / k;
       soln = lhs_lu.solve(fiss_source);

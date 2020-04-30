@@ -133,6 +133,8 @@ struct MaterialPerturbationTable {
     else if (xstype == XSType::SigA) mat_ptr->sigma_a[group] = orig_xs * fac;
     else if (xstype == XSType::NuSigF) mat_ptr->nu_sig_f[group] = orig_xs * fac;
     else std::cerr << "WTF set pert" << std::endl;
+
+    // std::cout << "fac = " << fac << std::endl;
   }
 
 };
@@ -158,6 +160,7 @@ public:
 
   double dt {1e-3};
   double tfinal {0.1};
+  bool quiet {false};
 
   double eig_tol {1e-6}; // eigenproblem residual L2 norm to stop at
   double linsolve_tol {0}; // zero means use Eigen's default epsilon

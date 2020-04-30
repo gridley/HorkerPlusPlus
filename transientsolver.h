@@ -39,6 +39,7 @@ class TransientSolver
   SpMat lhs_matrix;
   SpMat precursor_update_matrix;
   SpMat temperature_matrix;
+  SpMat mass_matrix;
   Eigen::VectorXd rhs;
   Eigen::VectorXd precursor_rhs;
   Eigen::VectorXd soln;
@@ -46,6 +47,7 @@ class TransientSolver
   Eigen::VectorXd fiss_source;
   Eigen::VectorXd temperature;
   Eigen::VectorXd temperature_rhs;
+  Eigen::VectorXd power;
 
   Eigen::BiCGSTAB<SpMat> solver;
   std::string output_directory;
@@ -75,7 +77,9 @@ public:
     precursor_rhs(n_precursor_groups*geom.npoints()),
     perts(perts_a),
     temperature(geom.npoints()),
-    temperature_rhs(geom.npoints())
+    temperature_rhs(geom.npoints()),
+    mass_matrix(geom.npoints(), geom.npoints()),
+    power(geom.npoints())
   {
     // set initial core temperature
     temperature = Eigen::VectorXd::Ones(geom.npoints()) * geom.input_.T0;
@@ -196,7 +200,8 @@ public:
     }
     lhs_matrix.setFromTriplets(lhs_matrix_entries.begin(), lhs_matrix_entries.end());
 
-    std::cout << "initializing precursor fields..." << std::endl;
+    if (not geom.input_.quiet)
+      std::cout << "initializing precursor fields..." << std::endl;
     // The fission source to each precursor has to be integrated on its
     // own because beta may be an arbitrary function in space.
     Eigen::VectorXd this_prec(geom.npoints());
@@ -231,7 +236,8 @@ public:
       lhs_prec_mat.setFromTriplets(lhs_entries.begin(), lhs_entries.end());
       solver.compute(lhs_prec_mat);
       this_prec = solver.solve(fiss_source);
-      std::cout << "Solved for precursor group " << prec << "with approximate error of " << solver.error() << std::endl;
+      if (not geom.input_.quiet)
+        std::cout << "Solved for precursor group " << prec << "with approximate error of " << solver.error() << std::endl;
 
       // Put temporary precursors to main array
       for (int i=0; i<geom.npoints(); ++i) {
@@ -268,7 +274,9 @@ public:
 
     // Now the temperature update mass matrix can be calculated
     std::vector<Trip> temperature_matrix_entries;
+    std::vector<Trip> mass_matrix_entries;
     temperature_matrix_entries.reserve(geom.npoints() * 4);
+    mass_matrix_entries.reserve(geom.npoints() * 4);
     for (auto& q: geom.quads) {
       double A = q.area();
       for (int w=0; w<Quadrature::points.size(); ++w) {
@@ -282,11 +290,13 @@ public:
             double mass = basis[test] * basis[trial];
             // Note: could add spatially dependent rho cp in the future
             temperature_matrix_entries.emplace_back(test_glb_indx, tri_glb_indx, mass * geom.input_.rhocp * A * Quadrature::weights[w]);
+            mass_matrix_entries.emplace_back(test_glb_indx, tri_glb_indx, mass * A * Quadrature::weights[w]);
           }
         }
       }
     }
     temperature_matrix.setFromTriplets(temperature_matrix_entries.begin(), temperature_matrix_entries.end());
+    mass_matrix.setFromTriplets(mass_matrix_entries.begin(), mass_matrix_entries.end());
   }
 
   void updateMatrix() {
@@ -431,8 +441,10 @@ public:
   void solveNextFlux() {
     solver.compute(lhs_matrix);
     soln = solver.solveWithGuess(rhs, soln);
-    std::cout << "  converged in " << solver.iterations() << std::endl;
-    std::cout << "  estimated error: " << solver.error() << std::endl;
+    if (not geom.input_.quiet) {
+      std::cout << "  converged in " << solver.iterations() << std::endl;
+      std::cout << "  estimated error: " << solver.error() << std::endl;
+    }
   }
 
   void updatePrecursors() {
@@ -503,9 +515,17 @@ public:
     }
 
     // print out temperature
-    f << "    <DataArray type=\"Float32\" Name=\"Temperature\" format=\"ascii\" RangeMin=\"" << temperature.minCoeff() << "\" RangeMax=\"" << temperature.maxCoeff() << "\">" << std::endl;
+    f << "    <DataArray type=\"Float32\" Name=\"temperature\" format=\"ascii\" RangeMin=\"" << temperature.minCoeff() << "\" RangeMax=\"" << temperature.maxCoeff() << "\">" << std::endl;
     for (int pt=0; pt<geom.npoints(); ++pt) {
       f << temperature(pt) << " ";
+      if (pt % 10 == 0 and pt > 0) f << std::endl;
+    }
+    f << "    </DataArray>" << std::endl;
+
+    // print out power
+    f << "    <DataArray type=\"Float32\" Name=\"power\" format=\"ascii\" RangeMin=\"" << power.minCoeff() << "\" RangeMax=\"" << power.maxCoeff() << "\">" << std::endl;
+    for (int pt=0; pt<geom.npoints(); ++pt) {
+      f << power(pt) << " ";
       if (pt % 10 == 0 and pt > 0) f << std::endl;
     }
     f << "    </DataArray>" << std::endl;
@@ -515,6 +535,7 @@ public:
 
   void computeFissSource() {
     // Computes the fission rate at each node
+    fiss_source = Eigen::VectorXd::Zero(fiss_source.size());
     for (auto& q: geom.quads) {
       double A = q.area();
       for (int w=0; w<Quadrature::points.size(); ++w) {
@@ -533,6 +554,10 @@ public:
         }
       }
     }
+
+    // Solve for power
+    solver.compute(mass_matrix);
+    power = solver.solve(fiss_source);
   }
 
   void computeNewTemperature() {
@@ -578,12 +603,7 @@ public:
     int ti = 0;
     while (time < tfinal) {
 
-      std::cout << "t=" << time << "s ";
-
-      if (ti%10==0) {
-        writeOutput(ti);
-        std::cout << "    writing VTU..." << std::endl;
-      }
+      if (not geom.input_.quiet) std::cout << "t=" << time << "s ";
 
       // Lookup material changes
       for (auto& pert: perts) pert.setPert(time);
@@ -597,8 +617,13 @@ public:
       computeNewTemperature();
 
       if (time == 0) initial_fission_source = integrated_fission_source;
-      std::cout << "P = " << integrated_fission_source / initial_fission_source << std::endl;
+      if (not geom.input_.quiet) std::cout << "P = " << integrated_fission_source / initial_fission_source << std::endl;
       power_file << time << " " << integrated_fission_source/initial_fission_source << std::endl;
+
+      if (ti%10==0) {
+        writeOutput(ti);
+        if (not geom.input_.quiet) std::cout << "    writing VTU..." << std::endl;
+      }
 
       solveNextFlux();
       updatePrecursors();

@@ -1,7 +1,7 @@
 set title "LRA Benchmark Steady State"
 set mode transient 
 set eig_tol 1e-10
-set dt 1e-3
+set dt 5e-3
 set tfinal 3.0
 set linsolve_tol 1e-9
 set refine 2
@@ -18,8 +18,8 @@ nu_sig_f 0.004602 0.1091
 sig_s 0 0 0.02533 0
 chi 1 0
 chi_d 1 0
-betas 0.0054 0.00654
-lambdas 0.00654 1.35
+betas 0.0054 0.001087
+lambdas 0.0654 1.35
 velocities 3e7 3e5
 gam 2.034e-3 0
 end
@@ -31,8 +31,8 @@ nu_sig_f 0.004609 0.08675
 sig_s 0 0 0.02767 0
 chi 1 0
 chi_d 1 0
-betas 0.0054 0.00654
-lambdas 0.00654 1.35
+betas 0.0054 0.001087
+lambdas 0.0654 1.35
 velocities 3e7 3e5
 gam 2.034e-3 0
 end
@@ -44,8 +44,8 @@ nu_sig_f 0.004663 0.1021
 sig_s 0 0 0.02617 0
 chi 1 0
 chi_d 1 0
-betas 0.0054 0.00654
-lambdas 0.00654 1.35
+betas 0.0054 0.001087
+lambdas 0.0654 1.35
 velocities 3e7 3e5
 gam 2.034e-3 0
 end
@@ -57,8 +57,8 @@ nu_sig_f 0.004663 0.1021
 sig_s 0 0 0.02617 0
 chi 1 0
 chi_d 1 0
-betas 0.0054 0.00654
-lambdas 0.00654 1.35
+betas 0.0054 0.001087
+lambdas 0.0654 1.35
 velocities 3e7 3e5
 gam 2.034e-3 0
 end
@@ -70,10 +70,10 @@ nu_sig_f 0 0
 sig_s 0 0 0.04754 0
 chi 1 0
 chi_d 1 0
-betas 0.0054 0.00654
-lambdas 0.00654 1.35
+betas 0.0054 0.001087
+lambdas 0.0654 1.35
 velocities 3e7 3e5
-gam 0 0
+gam 2.034e-3 0
 end
 
 assem 6
@@ -83,8 +83,8 @@ nu_sig_f 0.004663 0.1021
 sig_s 0 0 0.02617 0
 chi 1 0
 chi_d 1 0
-betas 0.0054 0.00654
-lambdas 0.00654 1.35
+betas 0.0054 0.001087
+lambdas 0.0654 1.35
 velocities 3e7 3e5
 gam 2.034e-3 0
 end

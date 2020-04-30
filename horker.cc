@@ -33,7 +33,7 @@
 #include <string>
 #include <iostream>
 
-constexpr unsigned Degree = 4;
+constexpr unsigned Degree = 2;
 constexpr unsigned Ngroups = 2;
 typedef Sommariva16 Quad;
 
@@ -47,7 +47,8 @@ int main(int argc, char* argv[]) {
   // Read input file
   std::string filename = argv[1];
   ParsedInput input(filename);
-  std::cout << "--- " << input.title << " ---" << std::endl;
+  if (not input.quiet)
+    std::cout << "--- " << input.title << " ---" << std::endl;
 
   // Initialize core geometry
   ReactorGeometry<ReferenceElement<Degree>> geom(input);
@@ -88,7 +89,8 @@ int main(int argc, char* argv[]) {
 
   // Now prepare to run a transient, if that mode was set in input
   if (input.runmode == ParsedInput::RunMode::transient) {
-    std::cout << "running in transient mode..." << std::endl;
+    if (not input.quiet)
+      std::cout << "running in transient mode..." << std::endl;
     TransientSolver<ReferenceElement<Degree>, Quad, Ngroups> trans_solver(geom, solver, input.dt,
         input.tfinal, "transient_results", input.perturbations, input.linsolve_tol);
     trans_solver.run();
