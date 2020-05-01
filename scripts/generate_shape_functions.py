@@ -87,7 +87,6 @@ def evaluate_basis(x, y):
 for i in range(npts):
     row = evaluate_basis(points[i,0], points[i,1])
     basis_matrix[i,:] = evaluate_basis(points[i,0], points[i,1])
-
 result = lin.inv(basis_matrix)
 
 
@@ -100,30 +99,30 @@ xx, yy = np.meshgrid(fine_x, fine_x)
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
 
-# dirname = 'order_%i'%d
-# if os.path.exists(dirname):
-#     os.remove(dirname)
-# os.mkdir(dirname)
+dirname = 'order_%i'%d
+if os.path.exists(dirname):
+    os.remove(dirname)
+os.mkdir(dirname)
 
 # Plot each basis function
-# for fcn in range(npts):
-#     plt.axis('off')
-#     k=0
-#     print(fcn)
-#     for j in range(n_fine):
-#         for i in range(n_fine):
-#             fine_points[k,0] = fine_x[i]
-#             fine_points[k,1] = fine_x[j]
-#             fine_points[k,2] = np.dot(evaluate_basis(fine_x[i], fine_x[j]), result[:,fcn])
-#             k+=1
-# 
-#     # plt.pcolormesh(fine_x, fine_x, fine_points[:,2].reshape(n_fine,n_fine))
-#     arr = fine_points[:,2].reshape(n_fine,n_fine)
-#     ax.plot_surface(xx, yy, arr, cmap=cm.viridis)
-#     # ax.plot(points[:,0], points[:,1], 'bs')
-#     # plt.show()
-#     fig.savefig(os.path.join(dirname, 'basis_%i.png'%fcn))
-#     ax.clear()
+for fcn in range(npts):
+    # plt.axis('off')
+    k=0
+    print(fcn)
+    for j in range(n_fine):
+        for i in range(n_fine):
+            fine_points[k,0] = fine_x[i]
+            fine_points[k,1] = fine_x[j]
+            fine_points[k,2] = np.dot(evaluate_basis(fine_x[i], fine_x[j]), result[:,fcn])
+            k+=1
+
+    # plt.pcolormesh(fine_x, fine_x, fine_points[:,2].reshape(n_fine,n_fine))
+    arr = fine_points[:,2].reshape(n_fine,n_fine)
+    ax.plot_surface(xx, yy, arr, cmap=cm.viridis)
+    ax.plot(points[:,0], points[:,1], 'bs')
+    plt.show()
+    fig.savefig(os.path.join(dirname, 'basis_%i.png'%fcn))
+    ax.clear()
 
 # # Save the basis function coefficients
 # np.savetxt(os.path.join(dirname, 'basis_coeffs'), result.T)
