@@ -33,7 +33,7 @@
 #include <string>
 #include <iostream>
 
-constexpr unsigned Degree = 2;
+constexpr unsigned Degree = 4;
 constexpr unsigned Ngroups = 2;
 typedef Sommariva16 Quad;
 

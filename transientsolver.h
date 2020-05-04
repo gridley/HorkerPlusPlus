@@ -324,6 +324,7 @@ public:
       double dx2 = geom.dx* geom.dx;
 
       // Loop over quadrature points:
+      #pragma unroll
       for (int w=0; w<Quadrature::points.size(); ++w) {
         // Loop over test functions:
         double x = Quadrature::points[w].x;
@@ -333,9 +334,12 @@ public:
         std::array<double, RefElement::Npts> der_y = RefElement::evaluate_deriv_y(x, y);
 
 
+        #pragma unroll
         for (int test=0; test<RefElement::Npts; ++test) {
+          #pragma unroll
           for (int trial=0; trial<RefElement::Npts; ++trial) {
             int trial_glb = q.loc2glb(trial);
+            #pragma unroll
             for (int group=0; group<Ng; ++group) {
               double entry = q.xs.diffcoeffs[group] * (der_x[test]*der_x[trial]+
                                                        der_y[test]*der_y[trial])/dx2;
@@ -346,6 +350,7 @@ public:
               local_lhs(Ng*test+group, Ng*trial+group) += Quadrature::weights[w] * entry;
 
               // Now loop over in-scattering to this group:
+              #pragma unroll
               for (int gprime=0; gprime<Ng; ++gprime) {
                 local_lhs(Ng*test+group, Ng*test+gprime) -= Quadrature::weights[w] * mass * q.xs.sig_s[Ng*group+gprime];
                 local_lhs(Ng*test+group, Ng*test+gprime) -= Quadrature::weights[w] * mass * q.xs.chi[group] * q.xs.nu_sig_f[gprime] * nsf_factor;
@@ -385,9 +390,13 @@ public:
       }
 
       // Put local matrix to the global sparse matrix specification
+      #pragma unroll
       for (int test=0; test<RefElement::Npts; ++test) {
+        #pragma unroll
         for (int trial=0; trial<RefElement::Npts; ++trial) {
+          #pragma unroll
           for (int g=0; g<Ng; ++g) {
+            #pragma unroll
             for (int gprime=0; gprime<Ng; ++gprime) {
               lhs_matrix.coeffRef(Ng*q.loc2glb(test)+g, Ng*q.loc2glb(trial)+gprime) += local_lhs(Ng*test+g, Ng*trial+gprime);
             }
@@ -406,16 +415,20 @@ public:
     rhs = Eigen::VectorXd::Zero(rhs.size());
     for (auto& q: geom.quads) {
       double A = q.area();
+      #pragma unroll
       for (int w=0; w<Quadrature::points.size(); ++w) {
         double x = Quadrature::points[w].x;
         double y = Quadrature::points[w].y;
         std::array<double, RefElement::Npts> basis = RefElement::evaluate_basis(x, y);
+        #pragma unroll
         for (int test=0; test<RefElement::Npts; ++test) {
           int test_glb_indx = q.loc2glb(test);
 
           // Keep integrating fission source over the whole domain
+          #pragma unroll
           for (int g=0; g<Ng; ++g) integrated_fission_source += Quadrature::weights[w] * A * soln(test_glb_indx*Ng+g) * basis[test] * q.xs.nu_sig_f[g];
 
+          #pragma unroll
           for (int trial=0; trial<RefElement::Npts; ++trial) {
             int tri_glb_indx = q.loc2glb(trial);
             double mass = basis[test] * basis[trial];

@@ -1,9 +1,9 @@
 set title "LRA Benchmark Steady State"
 set mode transient 
 set eig_tol 1e-10
-set dt 5e-3
+set dt 1e-3
 set tfinal 3.0
-set linsolve_tol 1e-9
+set linsolve_tol 1e-6
 set refine 2
 set P0 1e-6 % W/cm^3
 set T0 300 % K
@@ -21,7 +21,7 @@ chi_d 1 0
 betas 0.0054 0.001087
 lambdas 0.0654 1.35
 velocities 3e7 3e5
-gam 2.034e-3 0
+gam 3.034e-3 0
 end
 
 assem 2
@@ -34,7 +34,7 @@ chi_d 1 0
 betas 0.0054 0.001087
 lambdas 0.0654 1.35
 velocities 3e7 3e5
-gam 2.034e-3 0
+gam 3.034e-3 0
 end
 
 assem 3
@@ -47,7 +47,7 @@ chi_d 1 0
 betas 0.0054 0.001087
 lambdas 0.0654 1.35
 velocities 3e7 3e5
-gam 2.034e-3 0
+gam 3.034e-3 0
 end
 
 assem 4
@@ -60,7 +60,7 @@ chi_d 1 0
 betas 0.0054 0.001087
 lambdas 0.0654 1.35
 velocities 3e7 3e5
-gam 2.034e-3 0
+gam 3.034e-3 0
 end
 
 assem 5
@@ -73,7 +73,7 @@ chi_d 1 0
 betas 0.0054 0.001087
 lambdas 0.0654 1.35
 velocities 3e7 3e5
-gam 2.034e-3 0
+gam 3.034e-3 0
 end
 
 assem 6
@@ -86,7 +86,7 @@ chi_d 1 0
 betas 0.0054 0.001087
 lambdas 0.0654 1.35
 velocities 3e7 3e5
-gam 2.034e-3 0
+gam 3.034e-3 0
 end
 
 % Set LRA material perturbations

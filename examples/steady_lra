@@ -1,6 +1,6 @@
 set title "LRA Benchmark Steady State"
 set mode eigenvalue
-set refine 2
+set refine 1
 
 % --- Fuel assembly types ---
 
