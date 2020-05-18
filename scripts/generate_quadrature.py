@@ -7,7 +7,7 @@ import numpy as np
 frmt = '''
 struct %s : Quadrature<%i>
 {
-  static constexpr std::array<openmc::Position, Npts> points = {%s};
+  static constexpr std::array<Position, Npts> points = {%s};
   static constexpr std::array<double, Npts> weights = {%s};
 };
 '''

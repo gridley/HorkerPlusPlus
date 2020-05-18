@@ -149,6 +149,7 @@ public:
     transient } runmode;
 
   int refine {1}; // mesh refinement level
+  int write_vtk_interval {10}; // per this many timesteps, create VTK output during transients
 
   std::string title;
 

@@ -31,7 +31,6 @@ class SteadySolver
   // It's useful to pre-compute an LU of the LHS matrix.
   Eigen::SparseLU<SpMat> lhs_lu;
 
-
 public:
 
   Eigen::VectorXd soln;

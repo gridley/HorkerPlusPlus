@@ -8,7 +8,7 @@
 #include <string>
 #include <fstream>
 #include <iostream>
-#include "openmc/position.h"
+#include "position.h"
 #include "input_parsing.h"
 #include <Eigen/Dense>
 
@@ -78,7 +78,7 @@ public:
   static constexpr unsigned OffsetInternal = 4*(RefElement::NEdgeNodes+1);
 
   Quadrilateral(ParsedAssembly& xs_arg, std::string id,
-      std::vector<openmc::Position>& points_, int ix, int iy) :
+      std::vector<Position>& points_, int ix, int iy) :
     material_id(id),
     xs(xs_arg),
     neighbors_set({false}),
@@ -88,7 +88,7 @@ public:
     points(points_)
     {}
 
-  std::vector<openmc::Position>& points;
+  std::vector<Position>& points;
   std::string material_id;
   std::array<int, 4> corners; // indices in points array
   std::array<bool, 4> corners_set;
@@ -119,10 +119,10 @@ public:
   int topright() { return corners[2]; }
   int topleft() { return corners[3]; }
 
-  openmc::Position deltabottom() { return points[bottomright()]-points[bottomleft()]; }
-  openmc::Position deltaright() { return points[topright()]-points[bottomright()]; }
-  openmc::Position deltatop() { return points[topright()]-points[topleft()]; }
-  openmc::Position deltaleft() { return points[topleft()]-points[bottomleft()]; }
+  Position deltabottom() { return points[bottomright()]-points[bottomleft()]; }
+  Position deltaright() { return points[topright()]-points[bottomright()]; }
+  Position deltatop() { return points[topright()]-points[topleft()]; }
+  Position deltaleft() { return points[topleft()]-points[bottomleft()]; }
 
   void setCorner(int corner_i, int pos_i) {
     corners[corner_i] = pos_i;
@@ -196,8 +196,8 @@ public:
     Quadrilateral* neighbor;
     edge_nodes_created[c] = true;
     neighbor = neighbors[c].getNeighbor();
-    openmc::Position dx;
-    openmc::Position initial;
+    Position dx;
+    Position initial;
     switch (c) {
       case 0:
         dx = (points[corners[1]]-points[corners[0]])/RefElement::Degree;
@@ -246,9 +246,9 @@ public:
   }
 
   void insertInternalNodes() {
-    openmc::Position dx = (points[corners[1]]-points[corners[0]])/RefElement::Degree;
-    openmc::Position dy = (points[corners[3]]-points[corners[0]])/RefElement::Degree;
-    openmc::Position original = points[corners[0]] + dx + dy;
+    Position dx = (points[corners[1]]-points[corners[0]])/RefElement::Degree;
+    Position dy = (points[corners[3]]-points[corners[0]])/RefElement::Degree;
+    Position original = points[corners[0]] + dx + dy;
     for (int iy=0; iy<RefElement::NEdgeNodes; ++iy) {
       for (int ix=0; ix<RefElement::NEdgeNodes; ++ix) {
         internal_nodes[iy*RefElement::NEdgeNodes+ix] = points.size();
@@ -297,7 +297,7 @@ class ReactorGeometry
 
 public:
   ParsedInput& input_;
-  std::vector<openmc::Position> points;
+  std::vector<Position> points;
   std::vector<Quadrilateral<RefElement>> quads;
   double dx; // nominal assembly size
   double k; // eigenvalue for this geometry, saved for transients

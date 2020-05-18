@@ -2,10 +2,10 @@
 // I'm only using one quadrature rule for now, one that's all-around good (15th order,
 // positive weights), and with not too many points.
 #include <array>
-#include "openmc/position.h"
+#include "position.h"
 
-constexpr openmc::Position constpos(double x, double y, double z) {
-  openmc::Position result;
+constexpr Position constpos(double x, double y, double z) {
+  Position result;
   result.x = x;
   result.y = y;
   result.z = z;
@@ -16,13 +16,13 @@ template<unsigned N>
 struct Quadrature
 {
   static constexpr unsigned Npts = N;
-  static constexpr std::array<openmc::Position, N> points = constpos(0, 0, 0);
+  static constexpr std::array<Position, N> points = constpos(0, 0, 0);
   static constexpr std::array<double, N> weights = 0;
 };
 
 struct RabinowitzRichter6 : Quadrature<48>
 {
- static constexpr std::array<openmc::Position, Npts> points = {constpos(0.995769, 0.500000, 0.0),
+ static constexpr std::array<Position, Npts> points = {constpos(0.995769, 0.500000, 0.0),
     constpos(0.901008, 0.500000, 0.0),
     constpos(0.782434, 0.500000, 0.0),
     constpos(0.004231, 0.500000, 0.0),
@@ -123,7 +123,7 @@ struct RabinowitzRichter6 : Quadrature<48>
 
 struct Sommariva16 : Quadrature<52>
 {
-  static constexpr std::array<openmc::Position, Npts> points = {constpos(0.992492, 0.083423, 0.0),
+  static constexpr std::array<Position, Npts> points = {constpos(0.992492, 0.083423, 0.0),
     constpos(0.993633, 0.929422, 0.0),
     constpos(0.989671, 0.674411, 0.0),
     constpos(0.985537, 0.401186, 0.0),

@@ -74,6 +74,9 @@ ParsedInput::ParsedInput(std::string filename) {
       } else if (thisword == "tfinal") {
         if (not (infile >> thisword)) throw ParseError();
         tfinal = std::stod(thisword);
+      } else if (thisword == "write_vtk_interval") {
+        if (not (infile >> thisword)) throw ParseError();
+        write_vtk_interval = std::stoi(thisword);
       } else {
         throw InvalidKeyword(thisword);
       }

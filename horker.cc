@@ -25,7 +25,7 @@
 
 #include "input_parsing.h"
 #include "geometry.h"
-#include "openmc/position.h"
+#include "position.h"
 #include "reference_elements.h"
 #include "steadysolver.h"
 #include "transientsolver.h"

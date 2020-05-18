@@ -2,8 +2,7 @@
 ![emblem](pics/horker.png)
 ### (High Order Reactor Kinetics and Evaluation of Reactivity, in C++)
 
-This is a simple finite element program only requiring you to have [Eigen](https://eigen.tuxfamily.org) 
-and [OpenMC](https://github.com/openmc-dev/openmc) installed.
+This is a simple finite element program only requiring you to have [Eigen](https://eigen.tuxfamily.org) installed.
 Arbitrary order Lagrange element meshes are automatically generated based on simple input files which
 resemble commercial nuclear reactor simulation code, examples of which can be found in the examples
 directory. HORKER++ is capable of both core eigenvalue and transient calculations, and currently has

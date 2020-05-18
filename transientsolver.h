@@ -633,7 +633,8 @@ public:
       if (not geom.input_.quiet) std::cout << "P = " << integrated_fission_source / initial_fission_source << std::endl;
       power_file << time << " " << integrated_fission_source/initial_fission_source << std::endl;
 
-      if (ti%10==0) {
+      // Create a VTK output every "write_vtk_interval" time steps
+      if (ti%geom.input_.write_vtk_interval==0) {
         writeOutput(ti);
         if (not geom.input_.quiet) std::cout << "    writing VTU..." << std::endl;
       }

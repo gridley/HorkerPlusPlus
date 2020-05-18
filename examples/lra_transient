@@ -8,6 +8,7 @@ set refine 2
 set P0 1e-6 % W/cm^3
 set T0 300 % K
 set rhocp 0.83655 % J/(cm^3 K)
+set write_vtk_interval 10
 
 % --- Fuel assembly types ---
 
