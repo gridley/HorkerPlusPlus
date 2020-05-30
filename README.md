@@ -18,3 +18,8 @@ Pull, have Eigen installed in a place like below, run `make`.
 
 ### License
 GPL 3
+
+### Example Calculation Result
+An animation of the LRA BWR transient problem (click to follow YouTube link):
+
+[![LRA Transient Results](https://img.youtube.com/vi/qfd-8jtH_c4/0.jpg)](https://www.youtube.com/watch?v=qfd-8jtH_c4)
